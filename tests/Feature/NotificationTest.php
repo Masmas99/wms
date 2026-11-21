@@ -149,6 +149,40 @@ class NotificationTest extends TestCase
         ]);
     }
 
+    public function test_ess_users_see_unread_banner_announcements(): void
+    {
+        $admin = User::factory()->admin()->create();
+        $user = User::factory()->create();
+
+        $banner = Announcement::factory()->banner()->create([
+            'title' => 'Promo gudang akhir tahun',
+            'created_by' => $admin->id,
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Pemberitahuan banner')
+            ->assertSee($banner->title)
+            ->assertSee($banner->imageUrl(), false);
+
+        AnnouncementRead::create([
+            'announcement_id' => $banner->id,
+            'user_id' => $user->id,
+            'read_at' => now(),
+        ]);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertDontSee('Pemberitahuan banner');
+
+        $this->actingAs($admin)
+            ->get(route('admin.dashboard'))
+            ->assertOk()
+            ->assertDontSee('Pemberitahuan banner');
+    }
+
     public function test_the_unread_filter_only_returns_unread_announcements(): void
     {
         $user = User::factory()->create();

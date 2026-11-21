@@ -85,6 +85,10 @@
                             'container' => 'bg-rose-100 text-rose-600',
                             'icon' => 'M12 9v3.75m0 3.75h.008v.008H12v-.008ZM12 3.75 1.5 21h21L12 3.75Z',
                         ],
+                        \App\Models\Announcement::TYPE_BANNER => [
+                            'container' => 'bg-indigo-100 text-indigo-600',
+                            'icon' => 'M2.25 15.75l5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z',
+                        ],
                         default => [
                             'container' => 'bg-blue-100 text-blue-600',
                             'icon' => 'M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z',
@@ -110,11 +114,15 @@
                         :class="unread ? 'bg-blue-50/40' : 'bg-white'"
                         class="flex w-full items-start gap-3 border-b border-blue-50 px-4 py-3 text-left transition hover:bg-blue-50/60 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 disabled:cursor-wait"
                     >
-                        <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl {{ $typeTheme['container'] }}">
-                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $typeTheme['icon'] }}" />
-                            </svg>
-                        </span>
+                        @if ($announcement->imageUrl())
+                            <img src="{{ $announcement->imageUrl() }}" alt="" class="h-9 w-9 shrink-0 rounded-xl object-cover ring-1 ring-inset ring-indigo-100">
+                        @else
+                            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl {{ $typeTheme['container'] }}">
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="{{ $typeTheme['icon'] }}" />
+                                </svg>
+                            </span>
+                        @endif
 
                         <span class="min-w-0 flex-1">
                             <span class="flex items-center gap-2">

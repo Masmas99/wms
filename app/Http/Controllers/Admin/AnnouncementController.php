@@ -10,7 +10,9 @@ use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Throwable;
 
 class AnnouncementController extends Controller
 {
@@ -50,22 +52,34 @@ class AnnouncementController extends Controller
     public function store(StoreAnnouncementRequest $request): RedirectResponse
     {
         $data = $request->validated();
+        $imagePath = $data['type'] === Announcement::TYPE_BANNER
+            ? $request->file('image')?->store('announcement-banners', 'public')
+            : null;
 
-        $announcement = DB::transaction(function () use ($data, $request): Announcement {
-            $announcement = Announcement::create([
-                'title' => $data['title'],
-                'body' => $data['body'],
-                'type' => $data['type'],
-                'audience' => $data['audience'],
-                'created_by' => $request->user()->getKey(),
-            ]);
+        try {
+            $announcement = DB::transaction(function () use ($data, $request, $imagePath): Announcement {
+                $announcement = Announcement::create([
+                    'title' => $data['title'],
+                    'body' => $data['body'] ?? '',
+                    'image_path' => $imagePath,
+                    'type' => $data['type'],
+                    'audience' => $data['audience'],
+                    'created_by' => $request->user()->getKey(),
+                ]);
 
-            if ($data['audience'] === Announcement::AUDIENCE_SELECTED) {
-                $announcement->recipients()->sync($data['user_ids']);
+                if ($data['audience'] === Announcement::AUDIENCE_SELECTED) {
+                    $announcement->recipients()->sync($data['user_ids']);
+                }
+
+                return $announcement;
+            });
+        } catch (Throwable $exception) {
+            if (filled($imagePath)) {
+                Storage::disk('public')->delete($imagePath);
             }
 
-            return $announcement;
-        });
+            throw $exception;
+        }
 
         return redirect()
             ->route('admin.announcements.index')
@@ -98,22 +112,42 @@ class AnnouncementController extends Controller
     public function update(UpdateAnnouncementRequest $request, Announcement $announcement): RedirectResponse
     {
         $data = $request->validated();
+        $oldImagePath = $announcement->image_path;
+        $storedImagePath = $data['type'] === Announcement::TYPE_BANNER && $request->hasFile('image')
+            ? $request->file('image')->store('announcement-banners', 'public')
+            : null;
+        $imagePath = $data['type'] === Announcement::TYPE_BANNER
+            ? ($storedImagePath ?? $oldImagePath)
+            : null;
 
-        DB::transaction(function () use ($announcement, $data): void {
-            $announcement->update([
-                'title' => $data['title'],
-                'body' => $data['body'],
-                'type' => $data['type'],
-                'audience' => $data['audience'],
-            ]);
+        try {
+            DB::transaction(function () use ($announcement, $data, $imagePath): void {
+                $announcement->update([
+                    'title' => $data['title'],
+                    'body' => $data['body'] ?? '',
+                    'image_path' => $imagePath,
+                    'type' => $data['type'],
+                    'audience' => $data['audience'],
+                ]);
 
-            if ($data['audience'] === Announcement::AUDIENCE_SELECTED) {
-                $announcement->recipients()->sync($data['user_ids']);
-                $announcement->reads()->whereNotIn('user_id', $data['user_ids'])->delete();
-            } else {
-                $announcement->recipients()->detach();
+                if ($data['audience'] === Announcement::AUDIENCE_SELECTED) {
+                    $announcement->recipients()->sync($data['user_ids']);
+                    $announcement->reads()->whereNotIn('user_id', $data['user_ids'])->delete();
+                } else {
+                    $announcement->recipients()->detach();
+                }
+            });
+        } catch (Throwable $exception) {
+            if (filled($storedImagePath)) {
+                Storage::disk('public')->delete($storedImagePath);
             }
-        });
+
+            throw $exception;
+        }
+
+        if (filled($oldImagePath) && $oldImagePath !== $imagePath) {
+            Storage::disk('public')->delete($oldImagePath);
+        }
 
         return redirect()
             ->route('admin.announcements.index')
@@ -130,8 +164,13 @@ class AnnouncementController extends Controller
     public function destroy(Announcement $announcement): RedirectResponse
     {
         $title = $announcement->title;
+        $imagePath = $announcement->image_path;
 
         $announcement->delete();
+
+        if (filled($imagePath)) {
+            Storage::disk('public')->delete($imagePath);
+        }
 
         return redirect()
             ->route('admin.announcements.index')

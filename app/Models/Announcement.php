@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 
-#[Fillable(['title', 'body', 'type', 'audience', 'created_by'])]
+#[Fillable(['title', 'body', 'image_path', 'type', 'audience', 'created_by'])]
 class Announcement extends Model
 {
     /** @use HasFactory<AnnouncementFactory> */
@@ -31,6 +31,8 @@ class Announcement extends Model
     public const TYPE_WARNING = 'warning';
 
     public const TYPE_DANGER = 'danger';
+
+    public const TYPE_BANNER = 'banner';
 
     /**
      * @return BelongsTo<User, $this>
@@ -96,12 +98,26 @@ class Announcement extends Model
         return $this->reads()->where('user_id', $user->getKey())->exists();
     }
 
+    public function imageUrl(): ?string
+    {
+        if (blank($this->image_path)) {
+            return null;
+        }
+
+        if (str_starts_with($this->image_path, 'http://') || str_starts_with($this->image_path, 'https://')) {
+            return $this->image_path;
+        }
+
+        return asset('storage/'.ltrim($this->image_path, '/'));
+    }
+
     public function typeLabel(): string
     {
         return match ($this->type) {
             self::TYPE_SUCCESS => 'Kabar baik',
             self::TYPE_WARNING => 'Peringatan',
             self::TYPE_DANGER => 'Penting',
+            self::TYPE_BANNER => 'Banner',
             default => 'Informasi',
         };
     }

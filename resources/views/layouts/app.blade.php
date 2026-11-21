@@ -62,6 +62,8 @@
                     </div>
                 </header>
 
+                <x-announcement-banner />
+
                 <!-- Page Heading -->
                 @isset($header)
                     <header class="border-b border-blue-100 bg-white">

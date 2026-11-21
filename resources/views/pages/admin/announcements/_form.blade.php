@@ -1,11 +1,12 @@
 @php
     $isEdit = $announcement->exists;
     $initialAudience = old('audience', $announcement->audience ?: \App\Models\Announcement::AUDIENCE_ALL);
+    $initialType = old('type', $announcement->type ?: \App\Models\Announcement::TYPE_INFO);
     $oldUserIds = old('user_ids', $selectedUserIds);
     $initialSelectedUsers = is_array($oldUserIds) ? array_values(array_map('strval', $oldUserIds)) : [];
 @endphp
 
-<form method="POST" action="{{ $action }}" class="space-y-6">
+<form method="POST" action="{{ $action }}" enctype="multipart/form-data" class="space-y-6">
     @csrf
     @if ($method !== 'POST')
         @method($method)
@@ -13,10 +14,20 @@
 
     <div
         x-data="{
+            type: @js($initialType),
             audience: @js($initialAudience),
             selected: @js($initialSelectedUsers),
             search: '',
+            preview: null,
             users: @js($users),
+            pickImage(event) {
+                if (this.preview) {
+                    URL.revokeObjectURL(this.preview);
+                }
+
+                const file = event.target.files?.[0] ?? null;
+                this.preview = file ? URL.createObjectURL(file) : null;
+            },
             filteredUsers() {
                 const query = this.search.trim().toLowerCase();
                 const matches = query === ''
@@ -51,28 +62,64 @@
                     />
                 </x-wms.field>
 
-                <x-wms.field label="Jenis pemberitahuan" for="type">
-                    <x-wms.select id="type" name="type" required>
+                <x-wms.field label="Jenis pemberitahuan" for="type" hint="Pilih Banner untuk menampilkan gambar besar di halaman ESS pengguna.">
+                    <x-wms.select id="type" name="type" required x-model="type">
                         @foreach ([
                             \App\Models\Announcement::TYPE_INFO => 'Informasi',
                             \App\Models\Announcement::TYPE_SUCCESS => 'Kabar baik',
                             \App\Models\Announcement::TYPE_WARNING => 'Peringatan',
                             \App\Models\Announcement::TYPE_DANGER => 'Penting',
+                            \App\Models\Announcement::TYPE_BANNER => 'Banner (dengan gambar)',
                         ] as $value => $label)
-                            <option value="{{ $value }}" @selected(old('type', $announcement->type) === $value)>{{ $label }}</option>
+                            <option value="{{ $value }}" @selected($initialType === $value)>{{ $label }}</option>
                         @endforeach
                     </x-wms.select>
                 </x-wms.field>
+
+                <div x-show="type === '{{ \App\Models\Announcement::TYPE_BANNER }}'" x-cloak>
+                    <x-wms.field
+                        label="Gambar banner"
+                        for="image"
+                        hint="Format JPG, PNG, atau WEBP. Ukuran maksimal 4 MB. Gambar ini tampil sebagai banner setelah user ESS login."
+                    >
+                        <div class="space-y-3">
+                            <div x-show="preview" x-cloak class="overflow-hidden rounded-xl border border-blue-100 bg-slate-50">
+                                <img :src="preview" alt="Pratinjau gambar banner" class="max-h-64 w-full object-cover">
+                            </div>
+
+                            @if ($announcement->imageUrl())
+                                <div x-show="! preview" class="overflow-hidden rounded-xl border border-blue-100 bg-slate-50">
+                                    <img src="{{ $announcement->imageUrl() }}" alt="Gambar banner saat ini: {{ $announcement->title }}" class="max-h-64 w-full object-cover">
+                                </div>
+
+                                <p x-show="! preview" class="text-xs text-slate-500">Gambar saat ini. Unggah gambar baru untuk menggantinya.</p>
+                            @endif
+
+                            <input
+                                id="image"
+                                name="image"
+                                type="file"
+                                accept="image/jpeg,image/png,image/webp"
+                                @change="pickImage($event)"
+                                class="block w-full cursor-pointer rounded-xl border border-slate-300 bg-white text-sm text-slate-500 shadow-sm transition file:mr-4 file:cursor-pointer file:border-0 file:bg-blue-50 file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/30"
+                            >
+                        </div>
+                    </x-wms.field>
+                </div>
 
                 <x-wms.field label="Isi pemberitahuan" for="body">
                     <x-wms.textarea
                         id="body"
                         name="body"
                         rows="7"
-                        required
                         maxlength="5000"
                         placeholder="Tulis detail pemberitahuan..."
+                        x-bind:required="type !== '{{ \App\Models\Announcement::TYPE_BANNER }}'"
                     >{{ old('body', $announcement->body) }}</x-wms.textarea>
+
+                    <p x-show="type === '{{ \App\Models\Announcement::TYPE_BANNER }}'" x-cloak class="text-xs text-slate-500">
+                        Isi pemberitahuan opsional untuk banner. Gunakan jika perlu keterangan tambahan di bawah gambar.
+                    </p>
                 </x-wms.field>
             </div>
         </x-wms.card>

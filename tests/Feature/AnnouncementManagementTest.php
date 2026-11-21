@@ -6,6 +6,8 @@ use App\Models\Announcement;
 use App\Models\AnnouncementRead;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -226,6 +228,120 @@ class AnnouncementManagementTest extends TestCase
         $this->assertDatabaseMissing('announcements', ['id' => $announcement->id]);
         $this->assertDatabaseMissing('announcement_recipients', ['announcement_id' => $announcement->id]);
         $this->assertDatabaseMissing('announcement_reads', ['announcement_id' => $announcement->id]);
+    }
+
+    public function test_admins_can_create_a_banner_announcement_with_an_image(): void
+    {
+        Storage::fake('public');
+
+        $admin = User::factory()->admin()->create();
+        $user = User::factory()->create();
+
+        $response = $this->actingAs($admin)->post(route('admin.announcements.store'), [
+            'title' => 'Promo akhir tahun',
+            'type' => Announcement::TYPE_BANNER,
+            'audience' => Announcement::AUDIENCE_ALL,
+            'image' => UploadedFile::fake()->image('banner.jpg', 1200, 400),
+        ]);
+
+        $response->assertRedirect(route('admin.announcements.index'));
+
+        $announcement = Announcement::query()->firstOrFail();
+
+        $this->assertSame(Announcement::TYPE_BANNER, $announcement->type);
+        $this->assertSame('', $announcement->body);
+        $this->assertNotNull($announcement->image_path);
+        Storage::disk('public')->assertExists($announcement->image_path);
+
+        $this->actingAs($user)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Pemberitahuan banner')
+            ->assertSee('Promo akhir tahun')
+            ->assertSee($announcement->imageUrl(), false);
+    }
+
+    public function test_banner_announcements_require_an_image(): void
+    {
+        $admin = User::factory()->admin()->create();
+
+        $this->actingAs($admin)
+            ->from(route('admin.announcements.create'))
+            ->post(route('admin.announcements.store'), [
+                'title' => 'Banner tanpa gambar',
+                'type' => Announcement::TYPE_BANNER,
+                'audience' => Announcement::AUDIENCE_ALL,
+            ])
+            ->assertRedirect(route('admin.announcements.create'))
+            ->assertSessionHasErrors('image');
+
+        $this->assertDatabaseCount('announcements', 0);
+    }
+
+    public function test_banner_images_are_kept_when_updating_without_a_new_upload(): void
+    {
+        Storage::fake('public');
+
+        $admin = User::factory()->admin()->create();
+        $announcement = Announcement::factory()->banner()->create([
+            'created_by' => $admin->id,
+        ]);
+        $oldImagePath = $announcement->image_path;
+
+        $this->actingAs($admin)
+            ->put(route('admin.announcements.update', $announcement), [
+                'title' => 'Banner diperbarui',
+                'type' => Announcement::TYPE_BANNER,
+                'audience' => Announcement::AUDIENCE_ALL,
+            ])
+            ->assertRedirect(route('admin.announcements.index'));
+
+        $this->assertSame($oldImagePath, $announcement->refresh()->image_path);
+    }
+
+    public function test_changing_a_banner_to_another_type_removes_the_image(): void
+    {
+        Storage::fake('public');
+
+        $admin = User::factory()->admin()->create();
+        $announcement = Announcement::factory()->banner()->create([
+            'created_by' => $admin->id,
+        ]);
+        $oldImagePath = $announcement->image_path;
+        Storage::disk('public')->put($oldImagePath, 'banner');
+
+        $this->actingAs($admin)
+            ->put(route('admin.announcements.update', $announcement), [
+                'title' => 'Bukan banner lagi',
+                'body' => 'Isi pemberitahuan biasa.',
+                'type' => Announcement::TYPE_INFO,
+                'audience' => Announcement::AUDIENCE_ALL,
+                'image' => UploadedFile::fake()->image('replacement.jpg'),
+            ])
+            ->assertRedirect(route('admin.announcements.index'));
+
+        $this->assertNull($announcement->refresh()->image_path);
+        Storage::disk('public')->assertMissing($oldImagePath);
+        $this->assertSame([], Storage::disk('public')->allFiles('announcement-banners'));
+    }
+
+    public function test_deleting_a_banner_removes_the_stored_image(): void
+    {
+        Storage::fake('public');
+
+        $admin = User::factory()->admin()->create();
+        $announcement = Announcement::factory()->banner()->create([
+            'created_by' => $admin->id,
+        ]);
+        $imagePath = $announcement->image_path;
+        Storage::disk('public')->put($imagePath, 'banner');
+
+        $this->actingAs($admin)
+            ->delete(route('admin.announcements.destroy', $announcement))
+            ->assertRedirect(route('admin.announcements.index'));
+
+        $this->assertDatabaseMissing('announcements', ['id' => $announcement->id]);
+        Storage::disk('public')->assertMissing($imagePath);
     }
 
     public function test_non_admins_cannot_manage_announcements(): void

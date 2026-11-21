@@ -43,6 +43,7 @@
                                         \App\Models\Announcement::TYPE_SUCCESS => 'bg-emerald-50 text-emerald-700 ring-emerald-200',
                                         \App\Models\Announcement::TYPE_WARNING => 'bg-amber-50 text-amber-700 ring-amber-200',
                                         \App\Models\Announcement::TYPE_DANGER => 'bg-rose-50 text-rose-700 ring-rose-200',
+                                        \App\Models\Announcement::TYPE_BANNER => 'bg-indigo-50 text-indigo-700 ring-indigo-200',
                                         default => 'bg-blue-50 text-blue-700 ring-blue-200',
                                     };
 
@@ -54,6 +55,10 @@
                                 <tr class="transition hover:bg-blue-50/40">
                                     <td class="max-w-md px-6 py-4">
                                         <div class="flex flex-wrap items-center gap-2">
+                                            @if ($announcement->imageUrl())
+                                                <img src="{{ $announcement->imageUrl() }}" alt="" class="h-8 w-8 rounded-lg object-cover ring-1 ring-inset ring-blue-100">
+                                            @endif
+
                                             <span class="inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider ring-1 ring-inset {{ $typeTone }}">
                                                 {{ $announcement->typeLabel() }}
                                             </span>

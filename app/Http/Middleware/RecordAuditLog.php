@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Models\AuditLog;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Symfony\Component\HttpFoundation\Response;
 
 class RecordAuditLog
@@ -71,6 +72,22 @@ class RecordAuditLog
     {
         foreach (['password', 'password_confirmation', 'current_password', '_token', 'token'] as $key) {
             unset($payload[$key]);
+        }
+
+        foreach ($payload as $key => $value) {
+            if ($value instanceof UploadedFile) {
+                $payload[$key] = [
+                    'name' => $value->getClientOriginalName(),
+                    'mime_type' => $value->getClientMimeType(),
+                    'size' => $value->getSize(),
+                ];
+
+                continue;
+            }
+
+            if (is_array($value)) {
+                $payload[$key] = $this->sanitize($value);
+            }
         }
 
         return $payload;

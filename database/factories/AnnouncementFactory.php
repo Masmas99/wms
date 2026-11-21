@@ -21,6 +21,7 @@ class AnnouncementFactory extends Factory
         return [
             'title' => fake()->sentence(6),
             'body' => fake()->paragraph(),
+            'image_path' => null,
             'type' => fake()->randomElement([
                 Announcement::TYPE_INFO,
                 Announcement::TYPE_SUCCESS,
@@ -30,6 +31,17 @@ class AnnouncementFactory extends Factory
             'audience' => Announcement::AUDIENCE_ALL,
             'created_by' => User::factory(),
         ];
+    }
+
+    /**
+     * Indicate that the announcement is a banner with an image.
+     */
+    public function banner(): static
+    {
+        return $this->state(fn (array $attributes): array => [
+            'type' => Announcement::TYPE_BANNER,
+            'image_path' => 'announcement-banners/test-banner.jpg',
+        ]);
     }
 
     /**

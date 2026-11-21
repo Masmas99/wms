@@ -124,6 +124,7 @@
                                     \App\Models\Announcement::TYPE_SUCCESS => 'bg-emerald-50 text-emerald-700 ring-emerald-200',
                                     \App\Models\Announcement::TYPE_WARNING => 'bg-amber-50 text-amber-700 ring-amber-200',
                                     \App\Models\Announcement::TYPE_DANGER => 'bg-rose-50 text-rose-700 ring-rose-200',
+                                    \App\Models\Announcement::TYPE_BANNER => 'bg-indigo-50 text-indigo-700 ring-indigo-200',
                                     default => 'bg-blue-50 text-blue-700 ring-blue-200',
                                 };
 
@@ -131,12 +132,14 @@
                                     \App\Models\Announcement::TYPE_SUCCESS => 'bg-emerald-100 text-emerald-600',
                                     \App\Models\Announcement::TYPE_WARNING => 'bg-amber-100 text-amber-600',
                                     \App\Models\Announcement::TYPE_DANGER => 'bg-rose-100 text-rose-600',
+                                    \App\Models\Announcement::TYPE_BANNER => 'bg-indigo-100 text-indigo-600',
                                     default => 'bg-blue-100 text-blue-600',
                                 };
 
                                 $iconPath = match ($announcement->type) {
                                     \App\Models\Announcement::TYPE_SUCCESS => 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
                                     \App\Models\Announcement::TYPE_WARNING, \App\Models\Announcement::TYPE_DANGER => 'M12 9v3.75m0 3.75h.008v.008H12v-.008ZM12 3.75 1.5 21h21L12 3.75Z',
+                                    \App\Models\Announcement::TYPE_BANNER => 'M2.25 15.75l5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0 0 22.5 18.75V5.25A2.25 2.25 0 0 0 20.25 3H3.75A2.25 2.25 0 0 0 1.5 5.25v13.5A2.25 2.25 0 0 0 3.75 21Z',
                                     default => 'M11.25 11.25l.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z',
                                 };
                             @endphp
@@ -177,7 +180,17 @@
 
                                         <h3 class="mt-2 text-base font-semibold text-slate-900">{{ $announcement->title }}</h3>
 
-                                        <p class="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-600">{{ $announcement->body }}</p>
+                                        @if (filled($announcement->body))
+                                            <p class="mt-2 whitespace-pre-line text-sm leading-relaxed text-slate-600">{{ $announcement->body }}</p>
+                                        @endif
+
+                                        @if ($announcement->imageUrl())
+                                            <img
+                                                src="{{ $announcement->imageUrl() }}"
+                                                alt="Gambar pemberitahuan: {{ $announcement->title }}"
+                                                class="mt-4 max-h-96 w-full rounded-xl object-cover ring-1 ring-inset ring-blue-100"
+                                            >
+                                        @endif
 
                                         <div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
                                             <span>Dari {{ $announcement->creator?->name ?? 'Sistem' }}</span>

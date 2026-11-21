@@ -21,7 +21,7 @@ final class NotificationInbox
     {
         return Announcement::query()
             ->visibleTo($user)
-            ->select(['id', 'title', 'body', 'type', 'audience', 'created_by', 'created_at']);
+            ->select(['id', 'title', 'body', 'image_path', 'type', 'audience', 'created_by', 'created_at']);
     }
 
     /**
