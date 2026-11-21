@@ -189,6 +189,7 @@
                                                 src="{{ $announcement->imageUrl() }}"
                                                 alt="Gambar pemberitahuan: {{ $announcement->title }}"
                                                 class="mt-4 max-h-96 w-full rounded-xl object-cover ring-1 ring-inset ring-blue-100"
+                                                onerror="this.remove()"
                                             >
                                         @endif
 

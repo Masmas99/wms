@@ -89,7 +89,7 @@
 
                             @if ($announcement->imageUrl())
                                 <div x-show="! preview" class="overflow-hidden rounded-xl border border-blue-100 bg-slate-50">
-                                    <img src="{{ $announcement->imageUrl() }}" alt="Gambar banner saat ini: {{ $announcement->title }}" class="max-h-64 w-full object-cover">
+                                    <img src="{{ $announcement->imageUrl() }}" alt="Gambar banner saat ini: {{ $announcement->title }}" class="max-h-64 w-full object-cover" onerror="this.parentElement.remove()">
                                 </div>
 
                                 <p x-show="! preview" class="text-xs text-slate-500">Gambar saat ini. Unggah gambar baru untuk menggantinya.</p>

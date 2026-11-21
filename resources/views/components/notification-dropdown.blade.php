@@ -38,10 +38,10 @@
         x-transition:leave="transition ease-in duration-100"
         x-transition:leave-start="opacity-100 translate-y-0"
         x-transition:leave-end="opacity-0 -translate-y-1"
-        class="absolute right-0 z-40 mt-2 w-80 max-w-[calc(100vw_-_2rem)] overflow-hidden rounded-2xl border border-blue-100 bg-white shadow-xl shadow-blue-900/10 sm:w-96"
+        class="absolute right-0 z-40 mt-2 w-80 max-w-[calc(100vw_-_2rem)] overflow-hidden rounded-2xl border border-blue-100 bg-white shadow-xl shadow-blue-900/10 max-sm:fixed max-sm:left-4 max-sm:right-4 max-sm:top-20 max-sm:mt-0 max-sm:w-auto max-sm:max-w-none sm:w-96"
     >
         <div class="flex items-center justify-between gap-3 border-b border-blue-50 px-4 py-3">
-            <div>
+            <div class="min-w-0">
                 <p class="text-sm font-semibold text-slate-900">Notifikasi</p>
                 <p
                     class="mt-0.5 text-xs text-slate-500"
@@ -55,23 +55,25 @@
                 method="POST"
                 action="{{ route('notifications.read-all') }}"
                 x-show="unread > 0"
+                class="shrink-0"
                 @submit.prevent="$store.notifications.markAllRead($event.target)"
             >
                 @csrf
 
                 <button
                     type="submit"
-                    class="rounded-lg px-2 py-1 text-xs font-semibold text-blue-600 transition hover:bg-blue-50 hover:text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    class="whitespace-nowrap rounded-lg px-2 py-1 text-xs font-semibold text-blue-600 transition hover:bg-blue-50 hover:text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                     Tandai semua
                 </button>
             </form>
         </div>
 
-        <div class="max-h-96 overflow-y-auto">
+        <div class="max-h-96 overflow-y-auto max-sm:max-h-[calc(100dvh-12rem)]">
             @forelse ($announcements as $announcement)
                 @php
                     $isUnread = ! $announcement->isReadBy(Auth::user());
+                    $imageUrl = $announcement->imageUrl();
                     $typeTheme = match ($announcement->type) {
                         \App\Models\Announcement::TYPE_SUCCESS => [
                             'container' => 'bg-emerald-100 text-emerald-600',
@@ -114,15 +116,20 @@
                         :class="unread ? 'bg-blue-50/40' : 'bg-white'"
                         class="flex w-full items-start gap-3 border-b border-blue-50 px-4 py-3 text-left transition hover:bg-blue-50/60 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 disabled:cursor-wait"
                     >
-                        @if ($announcement->imageUrl())
-                            <img src="{{ $announcement->imageUrl() }}" alt="" class="h-9 w-9 shrink-0 rounded-xl object-cover ring-1 ring-inset ring-indigo-100">
-                        @else
-                            <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl {{ $typeTheme['container'] }}">
-                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="{{ $typeTheme['icon'] }}" />
-                                </svg>
-                            </span>
-                        @endif
+                        <span class="relative flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl {{ $typeTheme['container'] }} {{ $imageUrl ? 'ring-1 ring-inset ring-indigo-100' : '' }}">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="{{ $typeTheme['icon'] }}" />
+                            </svg>
+
+                            @if ($imageUrl)
+                                <img
+                                    src="{{ $imageUrl }}"
+                                    alt=""
+                                    class="absolute inset-0 h-full w-full object-cover"
+                                    onerror="this.remove()"
+                                >
+                            @endif
+                        </span>
 
                         <span class="min-w-0 flex-1">
                             <span class="flex items-center gap-2">
@@ -136,7 +143,7 @@
                                 </span>
                             </span>
 
-                            <span class="mt-0.5 block text-xs leading-relaxed text-slate-500">
+                            <span class="mt-0.5 line-clamp-2 text-xs leading-relaxed text-slate-500">
                                 {{ \Illuminate\Support\Str::limit($announcement->body, 90) }}
                             </span>
 

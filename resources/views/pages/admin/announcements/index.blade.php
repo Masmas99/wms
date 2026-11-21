@@ -56,7 +56,7 @@
                                     <td class="max-w-md px-6 py-4">
                                         <div class="flex flex-wrap items-center gap-2">
                                             @if ($announcement->imageUrl())
-                                                <img src="{{ $announcement->imageUrl() }}" alt="" class="h-8 w-8 rounded-lg object-cover ring-1 ring-inset ring-blue-100">
+                                                <img src="{{ $announcement->imageUrl() }}" alt="" class="h-8 w-8 rounded-lg object-cover ring-1 ring-inset ring-blue-100" onerror="this.remove()">
                                             @endif
 
                                             <span class="inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider ring-1 ring-inset {{ $typeTone }}">

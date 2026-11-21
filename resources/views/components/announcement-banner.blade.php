@@ -38,6 +38,7 @@
                 src="{{ $announcement->imageUrl() }}"
                 alt="{{ $announcement->title }}"
                 class="max-h-[70vh] w-full object-contain"
+                onerror="this.parentElement.remove()"
             >
         </div>
 
