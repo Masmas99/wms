@@ -25,7 +25,7 @@ final class NotificationInbox
     }
 
     /**
-     * Get the relationships used by the notification views.
+     * Get the relationships used by the notification page.
      *
      * The read state only needs the user and announcement identifiers.
      *
@@ -35,6 +35,18 @@ final class NotificationInbox
     {
         return [
             'creator:id,name',
+            ...self::readStateFor($user),
+        ];
+    }
+
+    /**
+     * Get the read-state relationship used by the notification views.
+     *
+     * @return array<string, \Closure>
+     */
+    public static function readStateFor(User $user): array
+    {
+        return [
             'reads' => function (HasMany $query) use ($user): void {
                 $query
                     ->select(['id', 'announcement_id', 'user_id'])
@@ -59,7 +71,7 @@ final class NotificationInbox
     public static function latest(User $user, int $limit = 8): Collection
     {
         return self::queryFor($user)
-            ->with(self::relationsFor($user))
+            ->with(self::readStateFor($user))
             ->latest()
             ->limit($limit)
             ->get();
