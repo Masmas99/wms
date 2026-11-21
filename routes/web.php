@@ -1,7 +1,9 @@
 <?php
 
+use App\Http\Controllers\Admin\AnnouncementController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\AdminDashboardController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Wms\AuditLogController;
 use App\Http\Controllers\Wms\CourierController;
@@ -42,7 +44,14 @@ Route::middleware(['auth', 'verified', 'admin'])
     ->group(function () {
         Route::get('/', AdminDashboardController::class)->name('dashboard');
         Route::resource('users', UserController::class)->except('show');
+        Route::resource('announcements', AnnouncementController::class)->except('show');
     });
+
+Route::middleware(['auth', 'verified'])->group(function (): void {
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    Route::post('/notifications/{announcement}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+});
 
 $wmsRoutes = function (): void {
     /*

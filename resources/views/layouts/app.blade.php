@@ -56,7 +56,8 @@
                         <span class="font-normal text-slate-400">/ Warehouse Management System</span>
                     </p>
 
-                    <div class="ml-auto">
+                    <div class="ml-auto flex items-center gap-2">
+                        <x-notification-dropdown />
                         <x-profile-dropdown />
                     </div>
                 </header>

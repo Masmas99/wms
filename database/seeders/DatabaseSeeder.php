@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             DummyUserSeeder::class,
             WmsDemoSeeder::class,
             DummyDataSeeder::class,
+            AnnouncementSeeder::class,
         ]);
     }
 }
