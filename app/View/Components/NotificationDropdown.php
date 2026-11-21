@@ -2,8 +2,7 @@
 
 namespace App\View\Components;
 
-use App\Models\Announcement;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Support\NotificationInbox;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\Component;
 use Illuminate\View\View;
@@ -24,18 +23,17 @@ class NotificationDropdown extends Component
             ]);
         }
 
-        $announcements = Announcement::query()
-            ->visibleTo($user)
-            ->with([
-                'reads' => fn (HasMany $query) => $query->where('user_id', $user->getKey()),
-            ])
-            ->latest()
-            ->limit(8)
-            ->get();
+        $request = request();
+
+        $announcements = $request->attributes->get('notificationLatestAnnouncements')
+            ?? NotificationInbox::latest($user);
+
+        $unreadCount = $request->attributes->get('notificationUnreadCount')
+            ?? NotificationInbox::unreadCount($user);
 
         return view('components.notification-dropdown', [
             'announcements' => $announcements,
-            'unreadCount' => Announcement::query()->visibleTo($user)->unreadBy($user)->count(),
+            'unreadCount' => $unreadCount,
         ]);
     }
 }

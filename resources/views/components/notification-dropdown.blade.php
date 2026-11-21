@@ -1,10 +1,17 @@
-<div x-data="{ open: false }" @keydown.escape.window="open = false" @click.outside="open = false" class="relative">
+<div
+    x-data="{ open: false, unread: {{ $unreadCount }} }"
+    x-init="$store.notifications.setUnread(unread)"
+    x-effect="unread = $store.notifications.unread"
+    @keydown.escape.window="open = false"
+    @click.outside="open = false"
+    class="relative"
+>
     <button
         type="button"
         @click="open = ! open"
         :aria-expanded="open"
         aria-haspopup="true"
-        aria-label="Notifikasi, {{ $unreadCount }} belum dibaca"
+        :aria-label="'Notifikasi, ' + unread + ' belum dibaca'"
         title="Notifikasi"
         class="relative inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-500 ring-1 ring-inset ring-blue-100 transition hover:bg-blue-50 hover:text-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
     >
@@ -12,11 +19,14 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a23.848 23.848 0 0 0 5.454-1.31A8.967 8.967 0 0 1 18 9.75V9A6 6 0 0 0 6 9v.75a8.967 8.967 0 0 1-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 0 1-5.714 0m5.714 0a3 3 0 1 1-5.714 0" />
         </svg>
 
-        @if ($unreadCount > 0)
-            <span class="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white ring-2 ring-white">
-                {{ $unreadCount > 99 ? '99+' : $unreadCount }}
-            </span>
-        @endif
+        <span
+            x-show="unread > 0"
+            x-cloak
+            x-text="unread > 99 ? '99+' : unread"
+            class="absolute -right-1 -top-1 inline-flex min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white ring-2 ring-white"
+        >
+            {{ $unreadCount > 99 ? '99+' : $unreadCount }}
+        </span>
     </button>
 
     <div
@@ -33,23 +43,29 @@
         <div class="flex items-center justify-between gap-3 border-b border-blue-50 px-4 py-3">
             <div>
                 <p class="text-sm font-semibold text-slate-900">Notifikasi</p>
-                <p class="mt-0.5 text-xs text-slate-500">
+                <p
+                    class="mt-0.5 text-xs text-slate-500"
+                    x-text="unread > 0 ? unread + ' belum dibaca' : 'Semua sudah dibaca'"
+                >
                     {{ $unreadCount > 0 ? $unreadCount.' belum dibaca' : 'Semua sudah dibaca' }}
                 </p>
             </div>
 
-            @if ($unreadCount > 0)
-                <form method="POST" action="{{ route('notifications.read-all') }}">
-                    @csrf
+            <form
+                method="POST"
+                action="{{ route('notifications.read-all') }}"
+                x-show="unread > 0"
+                @submit.prevent="$store.notifications.markAllRead($event.target)"
+            >
+                @csrf
 
-                    <button
-                        type="submit"
-                        class="rounded-lg px-2 py-1 text-xs font-semibold text-blue-600 transition hover:bg-blue-50 hover:text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    >
-                        Tandai semua
-                    </button>
-                </form>
-            @endif
+                <button
+                    type="submit"
+                    class="rounded-lg px-2 py-1 text-xs font-semibold text-blue-600 transition hover:bg-blue-50 hover:text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                    Tandai semua
+                </button>
+            </form>
         </div>
 
         <div class="max-h-96 overflow-y-auto">
@@ -76,16 +92,23 @@
                     };
                 @endphp
 
-                <form method="POST" action="{{ route('notifications.read', $announcement) }}">
+                <form
+                    method="POST"
+                    action="{{ route('notifications.read', $announcement) }}"
+                    x-data="notificationItem"
+                    x-ref="form"
+                    data-id="{{ $announcement->id }}"
+                    data-unread="{{ $isUnread ? '1' : '0' }}"
+                    data-action="{{ route('notifications.read', $announcement) }}"
+                    @submit.prevent="markRead"
+                >
                     @csrf
 
                     <button
                         type="submit"
-                        @class([
-                            'flex w-full items-start gap-3 border-b border-blue-50 px-4 py-3 text-left transition hover:bg-blue-50/60 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500',
-                            'bg-blue-50/40' => $isUnread,
-                            'bg-white' => ! $isUnread,
-                        ])
+                        :disabled="saving"
+                        :class="unread ? 'bg-blue-50/40' : 'bg-white'"
+                        class="flex w-full items-start gap-3 border-b border-blue-50 px-4 py-3 text-left transition hover:bg-blue-50/60 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500 disabled:cursor-wait"
                     >
                         <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl {{ $typeTheme['container'] }}">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" aria-hidden="true">
@@ -97,11 +120,12 @@
                             <span class="flex items-center gap-2">
                                 <span class="truncate text-sm font-semibold text-slate-900">{{ $announcement->title }}</span>
 
-                                @if ($isUnread)
-                                    <span class="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-blue-700">
-                                        Baru
-                                    </span>
-                                @endif
+                                <span
+                                    x-show="unread"
+                                    class="shrink-0 rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-blue-700"
+                                >
+                                    Baru
+                                </span>
                             </span>
 
                             <span class="mt-0.5 block text-xs leading-relaxed text-slate-500">

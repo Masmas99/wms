@@ -4,8 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Announcement;
 use App\Models\AnnouncementRead;
+use App\Support\NotificationInbox;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -22,20 +23,28 @@ class NotificationController extends Controller
         $user = $request->user();
         $filter = $request->string('filter')->trim()->toString();
 
-        $announcements = Announcement::query()
-            ->visibleTo($user)
-            ->with([
-                'creator:id,name',
-                'reads' => fn (HasMany $query) => $query->where('user_id', $user->getKey()),
-            ])
+        $announcements = NotificationInbox::queryFor($user)
+            ->with(NotificationInbox::relationsFor($user))
             ->when($filter === 'unread', fn (Builder $query) => $query->unreadBy($user))
             ->latest()
             ->paginate(15)
             ->withQueryString();
 
+        $unreadCount = NotificationInbox::unreadCount($user);
+
+        // Share the first page with the header bell so it does not repeat the queries.
+        $request->attributes->set('notificationUnreadCount', $unreadCount);
+
+        if ($filter !== 'unread' && $announcements->currentPage() === 1) {
+            $request->attributes->set(
+                'notificationLatestAnnouncements',
+                $announcements->getCollection()->take(8),
+            );
+        }
+
         return view('pages.notifications.index', [
             'announcements' => $announcements,
-            'unreadCount' => Announcement::query()->visibleTo($user)->unreadBy($user)->count(),
+            'unreadCount' => $unreadCount,
             'filter' => $filter,
         ]);
     }
@@ -43,7 +52,7 @@ class NotificationController extends Controller
     /**
      * Mark the specified announcement as read for the signed-in user.
      */
-    public function markAsRead(Request $request, Announcement $announcement): RedirectResponse
+    public function markAsRead(Request $request, Announcement $announcement): JsonResponse|RedirectResponse
     {
         $user = $request->user();
 
@@ -60,13 +69,19 @@ class NotificationController extends Controller
             ['read_at' => now()],
         );
 
+        if ($request->expectsJson()) {
+            return response()->json([
+                'unread_count' => NotificationInbox::unreadCount($user),
+            ]);
+        }
+
         return back();
     }
 
     /**
      * Mark every visible announcement as read for the signed-in user.
      */
-    public function markAllAsRead(Request $request): RedirectResponse
+    public function markAllAsRead(Request $request): JsonResponse|RedirectResponse
     {
         $user = $request->user();
         $now = now();
@@ -91,6 +106,10 @@ class NotificationController extends Controller
 
                 AnnouncementRead::query()->insertOrIgnore($rows);
             });
+
+        if ($request->expectsJson()) {
+            return response()->json(['unread_count' => 0]);
+        }
 
         return back()->with('success', 'Semua notifikasi ditandai sudah dibaca.');
     }

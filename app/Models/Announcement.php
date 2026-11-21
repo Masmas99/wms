@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 
 #[Fillable(['title', 'body', 'type', 'audience', 'created_by'])]
 class Announcement extends Model
@@ -63,8 +64,12 @@ class Announcement extends Model
     {
         $query->where(function (Builder $query) use ($user): void {
             $query->where('audience', self::AUDIENCE_ALL)
-                ->orWhereHas('recipients', function (Builder $recipientQuery) use ($user): void {
-                    $recipientQuery->whereKey($user->getKey());
+                ->orWhereExists(function (QueryBuilder $recipientQuery) use ($user): void {
+                    $recipientQuery
+                        ->selectRaw('1')
+                        ->from('announcement_recipients')
+                        ->whereColumn('announcement_recipients.announcement_id', 'announcements.id')
+                        ->where('announcement_recipients.user_id', $user->getKey());
                 });
         });
     }

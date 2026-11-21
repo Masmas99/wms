@@ -70,6 +70,22 @@ class NotificationTest extends TestCase
         $this->assertDatabaseCount('announcement_reads', 1);
     }
 
+    public function test_users_can_mark_an_announcement_as_read_via_json(): void
+    {
+        $user = User::factory()->create();
+        $announcement = Announcement::factory()->create();
+
+        $this->actingAs($user)
+            ->postJson(route('notifications.read', $announcement))
+            ->assertOk()
+            ->assertJson(['unread_count' => 0]);
+
+        $this->assertDatabaseHas('announcement_reads', [
+            'announcement_id' => $announcement->id,
+            'user_id' => $user->id,
+        ]);
+    }
+
     public function test_users_cannot_mark_another_users_personal_announcement_as_read(): void
     {
         $user = User::factory()->create();
@@ -113,6 +129,22 @@ class NotificationTest extends TestCase
         ]);
         $this->assertDatabaseMissing('announcement_reads', [
             'announcement_id' => $otherPersonal->id,
+            'user_id' => $user->id,
+        ]);
+    }
+
+    public function test_users_can_mark_all_visible_announcements_as_read_via_json(): void
+    {
+        $user = User::factory()->create();
+        $announcement = Announcement::factory()->create();
+
+        $this->actingAs($user)
+            ->postJson(route('notifications.read-all'))
+            ->assertOk()
+            ->assertJson(['unread_count' => 0]);
+
+        $this->assertDatabaseHas('announcement_reads', [
+            'announcement_id' => $announcement->id,
             'user_id' => $user->id,
         ]);
     }
