@@ -17,8 +17,8 @@
 
     <div class="py-8">
         <div class="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
-            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-                <x-wms.stat label="Nilai persediaan" :value="'Rp '.number_format($totalValue, 0, ',', '.')" hint="Seluruh lot tersimpan" tone="blue" />
+            <div class="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-5">
+                <x-wms.stat class="col-span-2 xl:col-span-1" label="Nilai persediaan" :value="'Rp '.number_format($totalValue, 0, ',', '.')" hint="Seluruh lot tersimpan" tone="blue" />
                 <x-wms.stat label="0-30 hari" :value="number_format($summary['0-30'], 2, ',', '.')" hint="Lot baru" tone="emerald" />
                 <x-wms.stat label="31-60 hari" :value="number_format($summary['31-60'], 2, ',', '.')" hint="Pantau perputaran" tone="amber" />
                 <x-wms.stat label="61-90 hari" :value="number_format($summary['61-90'], 2, ',', '.')" hint="Perlu percepatan" tone="amber" />

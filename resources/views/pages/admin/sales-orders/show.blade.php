@@ -48,7 +48,7 @@
                 $picked = (float) $order->items->sum('qty_picked');
             @endphp
 
-            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
                 <x-wms.stat label="Dipesan" :value="number_format($ordered, 2, ',', '.')" :hint="$order->items->count().' baris pesanan'" tone="blue" />
                 <x-wms.stat label="Dialokasikan" :value="number_format($allocated, 2, ',', '.')" hint="Terikat pada lot stok" tone="amber" />
                 <x-wms.stat label="Di-pick" :value="number_format($picked, 2, ',', '.')" hint="Sudah diambil dari bin" tone="emerald" />

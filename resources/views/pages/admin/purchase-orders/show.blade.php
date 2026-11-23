@@ -39,7 +39,7 @@
                 $rejected = (float) $order->items->sum('qty_rejected');
             @endphp
 
-            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
                 <x-wms.stat label="Dijadwalkan" :value="number_format($expected, 2, ',', '.')" :hint="$order->items->count().' baris produk'" tone="blue" />
                 <x-wms.stat label="Diterima baik" :value="number_format($received, 2, ',', '.')" hint="Masuk ke staging" tone="emerald" />
                 <x-wms.stat label="Ditolak" :value="number_format($rejected, 2, ',', '.')" hint="Tidak masuk stok" tone="rose" />

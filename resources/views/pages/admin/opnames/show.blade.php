@@ -30,10 +30,10 @@
                 $isAdmin = Auth::user()->isAdmin();
             @endphp
 
-            <div class="grid gap-4 sm:grid-cols-3">
+            <div class="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3">
                 <x-wms.stat label="Baris hitung" :value="(string) $total" hint="Snapshot bin berisi stok" tone="blue" />
                 <x-wms.stat label="Sudah dihitung" :value="$counted.' / '.$total" hint="Baris dengan kuantitas fisik" tone="emerald" />
-                <x-wms.stat label="Baris selisih" :value="(string) $variance" hint="Menunggu keputusan admin" tone="amber" />
+                <x-wms.stat class="col-span-2 sm:col-span-1" label="Baris selisih" :value="(string) $variance" hint="Menunggu keputusan admin" tone="amber" />
             </div>
 
             @if ($opname->status === 'completed')

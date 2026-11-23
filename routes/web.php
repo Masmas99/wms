@@ -135,6 +135,7 @@ $wmsRoutes = function (): void {
     Route::get('reports/ledger', [ReportController::class, 'ledger'])->name('reports.ledger');
 
     Route::get('labels/products/{product}', [LabelController::class, 'product'])->name('labels.products');
+    Route::get('labels/stocks/{stock}', [LabelController::class, 'stock'])->name('labels.stocks');
     Route::get('labels/locations/{location}', [LabelController::class, 'location'])->name('labels.locations');
     Route::get('labels/sales-orders/{salesOrder}/packing-list', [LabelController::class, 'packingList'])->name('labels.packing-list');
     Route::get('labels/sales-orders/{salesOrder}/shipping', [LabelController::class, 'shipping'])->name('labels.shipping');

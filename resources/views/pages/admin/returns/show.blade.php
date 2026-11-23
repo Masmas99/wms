@@ -22,10 +22,10 @@
                 $decidedCount = $return->items->count() - $pendingCount;
             @endphp
 
-            <div class="grid gap-4 sm:grid-cols-3">
+            <div class="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3">
                 <x-wms.stat label="Total unit retur" :value="number_format($totalQty, 2, ',', '.')" :hint="$return->items->count().' baris'" tone="blue" />
                 <x-wms.stat label="Menunggu disposisi" :value="(string) $pendingCount" hint="Perlu keputusan admin" tone="amber" />
-                <x-wms.stat label="Sudah diputuskan" :value="(string) $decidedCount" hint="Restock, karantina, atau scrap" tone="emerald" />
+                <x-wms.stat class="col-span-2 sm:col-span-1" label="Sudah diputuskan" :value="(string) $decidedCount" hint="Restock, karantina, atau scrap" tone="emerald" />
             </div>
 
             @if (! $isAdmin && $pendingCount > 0)

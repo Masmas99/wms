@@ -48,7 +48,7 @@
 
     <div class="py-8">
         <div class="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
-            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
                 <x-wms.stat
                     label="Stok fisik"
                     :value="$compact($totalOnHand)"
@@ -80,8 +80,9 @@
             </div>
 
             @if ($isAdmin)
-                <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div class="grid gap-3 sm:gap-4 lg:grid-cols-3">
                     <x-wms.stat
+                        class="lg:col-span-2"
                         label="Nilai aset stok"
                         value="Rp {{ number_format((float) $assetValue, 0, ',', '.') }}"
                         hint="Hanya terlihat oleh admin"

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Wms;
 
 use App\Http\Controllers\Controller;
+use App\Models\InventoryStock;
 use App\Models\Location;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
@@ -23,6 +24,25 @@ class LabelController extends Controller
 
         return view(wms_view('labels.product'), [
             'product' => $product,
+            'copies' => $copies,
+            'code' => $code,
+            'barcode' => BarcodeGenerator::svg($code, 50, 1.4, false),
+        ]);
+    }
+
+    /**
+     * Printable label for a single stock lot.
+     */
+    public function stock(Request $request, InventoryStock $stock): View
+    {
+        $copies = min(50, max(1, $request->integer('copies', 1)));
+
+        $stock->load(['product', 'location.warehouse']);
+
+        $code = $stock->product->barcode ?: $stock->product->sku;
+
+        return view(wms_view('labels.stock'), [
+            'stock' => $stock,
             'copies' => $copies,
             'code' => $code,
             'barcode' => BarcodeGenerator::svg($code, 50, 1.4, false),

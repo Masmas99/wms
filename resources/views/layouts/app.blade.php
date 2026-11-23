@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" data-theme-scope="app">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,6 +12,24 @@
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
+
+        <!-- Theme (applied before paint to avoid a flash of light mode) -->
+        <script>
+            (function () {
+                try {
+                    var mode = localStorage.getItem('theme') || 'system';
+                    var dark = mode === 'dark' || (mode === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+                    if (dark) {
+                        document.documentElement.classList.add('dark');
+                    }
+
+                    document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+                } catch (error) {
+                    // Storage can be unavailable; fall back to the light theme.
+                }
+            })();
+        </script>
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])

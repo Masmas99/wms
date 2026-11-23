@@ -401,6 +401,42 @@ class WmsAccessTest extends TestCase
             ->assertSee($purchaseOrder->reference_no);
     }
 
+    public function test_stock_lot_label_prints_product_bin_and_batch_details(): void
+    {
+        [$admin, , $bin, $product] = $this->fixture();
+
+        $stock = InventoryStock::factory()->create([
+            'location_id' => $bin->id,
+            'product_id' => $product->id,
+            'batch_number' => 'BATCH-TEST',
+            'qty_on_hand' => 12,
+            'qty_reserved' => 2,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(wms_route('stocks.index'))
+            ->assertOk()
+            ->assertSee(wms_route('labels.stocks', $stock), false);
+
+        $this->actingAs($admin)
+            ->get(wms_route('labels.stocks', $stock))
+            ->assertOk()
+            ->assertViewIs('pages.admin.labels.stock')
+            ->assertSee('<svg', false)
+            ->assertSee($product->sku)
+            ->assertSee($bin->full_code)
+            ->assertSee('BATCH-TEST');
+
+        $staff = User::factory()->create();
+
+        $this->actingAs($staff)
+            ->get(wms_route('labels.stocks', $stock))
+            ->assertOk()
+            ->assertViewIs('pages.ess.labels.stock')
+            ->assertSee($product->sku)
+            ->assertSee($bin->full_code);
+    }
+
     public function test_scan_lookup_resolves_products_bins_and_orders(): void
     {
         [$admin, $warehouse, $bin, $product] = $this->fixture();

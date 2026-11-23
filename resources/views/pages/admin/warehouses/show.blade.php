@@ -26,7 +26,7 @@
                 $percent = $storageBins->count() > 0 ? round($occupied / $storageBins->count() * 100) : 0;
             @endphp
 
-            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
                 <x-wms.stat label="Bin penyimpanan" :value="$storageBins->count()" :hint="'Kode awalan '.$warehouse->code" tone="blue" />
                 <x-wms.stat label="Bin terisi" :value="$occupied" :hint="$percent.'% utilisasi'" tone="amber" />
                 <x-wms.stat label="Total kuantitas" :value="number_format((float) $totalQuantity, 2, ',', '.')" hint="Seluruh lot di gudang" tone="emerald" />

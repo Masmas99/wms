@@ -42,7 +42,7 @@
             </form>
 
             @if ($product)
-                <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                <div class="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
                     <x-wms.stat label="Saldo awal" :value="number_format($initial, 2, ',', '.')" :hint="'Per '.date('d/m/Y', strtotime($from))" tone="slate" />
                     <x-wms.stat label="Total masuk" :value="number_format(collect($rows)->sum('in'), 2, ',', '.')" hint="Seluruh mutasi positif" tone="emerald" />
                     <x-wms.stat label="Total keluar" :value="number_format(collect($rows)->sum('out'), 2, ',', '.')" hint="Seluruh mutasi negatif" tone="rose" />

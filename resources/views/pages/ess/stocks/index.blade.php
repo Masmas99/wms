@@ -15,10 +15,10 @@
 
     <div class="py-8">
         <div class="mx-auto max-w-7xl space-y-6 px-4 sm:px-6 lg:px-8">
-            <div class="grid gap-4 sm:grid-cols-3">
+            <div class="grid grid-cols-2 gap-3 sm:gap-4 sm:grid-cols-3">
                 <x-wms.stat label="Total fisik" :value="number_format($totalOnHand, 2, ',', '.')" hint="Seluruh lot di semua gudang" tone="blue" />
                 <x-wms.stat label="Dialokasikan" :value="number_format($totalReserved, 2, ',', '.')" hint="Terikat pada pesanan" tone="amber" />
-                <x-wms.stat label="Tersedia" :value="number_format($totalOnHand - $totalReserved, 2, ',', '.')" hint="Siap dipakai" tone="emerald" />
+                <x-wms.stat class="col-span-2 sm:col-span-1" label="Tersedia" :value="number_format($totalOnHand - $totalReserved, 2, ',', '.')" hint="Siap dipakai" tone="emerald" />
             </div>
 
             <form method="GET" action="{{ wms_route('stocks.index') }}" class="rounded-2xl border border-blue-100 bg-white p-4 shadow-sm shadow-blue-900/5">
@@ -72,6 +72,7 @@
                                 <th class="px-6 py-4 text-right">Fisik</th>
                                 <th class="px-6 py-4 text-right">Tersedia</th>
                                 <th class="px-6 py-4">Status</th>
+                                <th class="px-6 py-4 text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-blue-50">
@@ -109,10 +110,15 @@
                                             <x-wms.status status="approved" label="Tersedia" />
                                         @endif
                                     </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center justify-end">
+                                            <x-wms.icon-button :href="wms_route('labels.stocks', $stock)" icon="printer" label="Cetak label {{ $stock->product->name }} di {{ $stock->location->full_code }}" target="_blank" rel="noopener" />
+                                        </div>
+                                    </td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="px-6 py-12">
+                                    <td colspan="8" class="px-6 py-12">
                                         <x-wms.empty title="Tidak ada lot stok" description="Ubah filter atau lakukan receiving untuk menambah stok." />
                                     </td>
                                 </tr>

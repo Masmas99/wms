@@ -29,7 +29,7 @@
                 $reserved = (float) $location->stocks->sum('qty_reserved');
             @endphp
 
-            <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
                 <x-wms.stat label="Stok fisik" :value="number_format($onHand, 2, ',', '.')" :hint="$location->stocks->count().' lot'" tone="blue" />
                 <x-wms.stat label="Dialokasikan" :value="number_format($reserved, 2, ',', '.')" hint="Untuk pesanan berjalan" tone="amber" />
                 <x-wms.stat label="Tersedia" :value="number_format($onHand - $reserved, 2, ',', '.')" hint="Siap dipindahkan" tone="emerald" />
