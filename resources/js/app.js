@@ -214,6 +214,72 @@ Alpine.data('notificationItem', () => ({
     },
 }));
 
+const sidebarScrollStorageKey = 'sidebarScrollTop';
+
+// The sidebar keeps its own scroll, so a full page load would otherwise jump
+// the menu back to the top. Remember the position for the current tab.
+const rememberSidebarScroll = () => {
+    const nav = document.getElementById('app-sidebar-nav');
+
+    if (!nav) {
+        return;
+    }
+
+    let storedTop = null;
+
+    try {
+        storedTop = sessionStorage.getItem(sidebarScrollStorageKey);
+    } catch (error) {
+        storedTop = null;
+    }
+
+    if (storedTop !== null) {
+        const parsed = Number.parseInt(storedTop, 10);
+        nav.scrollTop = Number.isNaN(parsed) ? 0 : Math.max(0, parsed);
+    } else if (window.innerWidth >= 1024) {
+        // First visit in this tab: reveal the active item without moving the page.
+        nav.querySelector('[data-sidebar-active="true"]')?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
+
+    let lastTop = nav.scrollTop;
+    let frame = null;
+
+    const persist = () => {
+        try {
+            sessionStorage.setItem(sidebarScrollStorageKey, String(lastTop));
+        } catch (error) {
+            // Storage can be unavailable; the position simply will not persist.
+        }
+    };
+
+    nav.addEventListener(
+        'scroll',
+        () => {
+            lastTop = nav.scrollTop;
+
+            if (frame !== null) {
+                return;
+            }
+
+            frame = window.requestAnimationFrame(() => {
+                frame = null;
+                persist();
+            });
+        },
+        { passive: true },
+    );
+
+    // Flush before the next page replaces this one, even mid-frame.
+    nav.addEventListener('click', persist);
+    window.addEventListener('pagehide', persist);
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', rememberSidebarScroll, { once: true });
+} else {
+    rememberSidebarScroll();
+}
+
 window.Alpine = Alpine;
 
 Alpine.start();

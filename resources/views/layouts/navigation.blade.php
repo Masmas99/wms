@@ -92,7 +92,7 @@
     </div>
 
     <!-- Navigation -->
-    <nav class="relative mt-8 flex-1 overflow-y-auto" :class="sidebarCollapsed ? 'lg:mt-4' : ''">
+    <nav id="app-sidebar-nav" class="relative mt-8 flex-1 overflow-y-auto" :class="sidebarCollapsed ? 'lg:mt-4' : ''">
         <p class="px-3 text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400" x-show="! sidebarCollapsed || ! isDesktop">
             Menu utama
         </p>
@@ -101,6 +101,7 @@
             @unless (Auth::user()->isAdmin())
                 <a
                     href="{{ route('dashboard') }}"
+                    data-sidebar-active="{{ $isDashboard ? 'true' : 'false' }}"
                     @class([
                         'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition',
                         'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-inset ring-blue-100' => $isDashboard,
@@ -124,6 +125,7 @@
             @if (Auth::user()->isAdmin())
                 <a
                     href="{{ route('admin.dashboard') }}"
+                    data-sidebar-active="{{ $isAdminArea ? 'true' : 'false' }}"
                     @class([
                         'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition',
                         'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-inset ring-blue-100' => $isAdminArea,
@@ -155,6 +157,7 @@
                 @foreach ($warehouseLinks as $link)
                     <a
                         href="{{ wms_route($link['route']) }}"
+                        data-sidebar-active="{{ request()->routeIs($wmsPrefix.$link['active']) ? 'true' : 'false' }}"
                         @class([
                             'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition',
                             'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-inset ring-blue-100' => request()->routeIs($wmsPrefix.$link['active']),
@@ -186,6 +189,7 @@
                 <div class="mt-3 space-y-1">
                     <a
                         href="{{ route('admin.users.index') }}"
+                        data-sidebar-active="{{ $isAdminUsers ? 'true' : 'false' }}"
                         @class([
                             'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition',
                             'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-inset ring-blue-100' => $isAdminUsers,
@@ -207,6 +211,7 @@
 
                     <a
                         href="{{ route('admin.announcements.index') }}"
+                        data-sidebar-active="{{ $isAdminAnnouncements ? 'true' : 'false' }}"
                         @class([
                             'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition',
                             'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-inset ring-blue-100' => $isAdminAnnouncements,
@@ -229,6 +234,7 @@
                     @foreach ($masterDataLinks as $link)
                         <a
                             href="{{ wms_route($link['route']) }}"
+                            data-sidebar-active="{{ request()->routeIs($wmsPrefix.$link['active']) ? 'true' : 'false' }}"
                             @class([
                                 'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition',
                                 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-inset ring-blue-100' => request()->routeIs($wmsPrefix.$link['active']),
