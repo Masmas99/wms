@@ -94,7 +94,7 @@ Rumitech adalah aplikasi **Warehouse Management System (WMS)** berbasis Laravel 
 ### 1. Clone repositori
 
 ```bash
-git clone https://github.com/Masmas99/cms.git
+git clone https://github.com/Masmas99/wms.git
 cd cms
 ```
 
@@ -202,7 +202,7 @@ Buka `http://localhost:8000`, lalu login di `http://localhost:8000/login`. Admin
 ### Ringkasan perintah
 
 ```bash
-git clone https://github.com/Masmas99/cms.git
+git clone https://github.com/Masmas99/wms.git
 cd cms
 
 composer install
