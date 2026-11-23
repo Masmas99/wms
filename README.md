@@ -38,3 +38,7 @@ Rumitech membantu tim gudang mencatat barang masuk, barang keluar, perpindahan s
 
 - **Admin**: akses penuh ke master data, manajemen user, persetujuan, laporan lengkap, dan audit aktivitas.
 - **Staf**: menjalankan operasional gudang, blind count, pengajuan penyesuaian, retur, scan, dan melihat kartu stok.
+
+## Lisensi
+
+Proyek ini dirilis di bawah [MIT License](LICENSE).
